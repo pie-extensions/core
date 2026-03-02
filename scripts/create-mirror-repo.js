@@ -91,8 +91,9 @@ async function main() {
     );
     composerContent.name = `${ORG}/${extName}`;
     composerContent.description = `PIE-compatible mirror of ${upstreamRepo}`;
-    composerContent.extra['php-ext']['extension-name'] = phpExtName;
-    composerContent.extra['php-ext']['build-path'] = buildPath;
+    delete composerContent.extra;
+    composerContent['php-ext']['extension-name'] = phpExtName;
+    composerContent['php-ext']['build-path'] = buildPath;
     composerContent.support = {
         source: `https://github.com/${ORG}/${extName}`,
     };
