@@ -1,0 +1,46 @@
+name: Sync New Mirrors
+
+on:
+  push:
+    branches: [main]
+    paths: ['registry.json']
+
+jobs:
+  check:
+    name: Detect unsynced mirrors
+    runs-on: ubuntu-latest
+    outputs:
+      new: ${{ steps.check.outputs.new }}
+      count: ${{ steps.check.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Check for new mirrors
+        id: check
+        run: node scripts/check-new-mirrors.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Summary
+        run: echo "Found ${{ steps.check.outputs.count }} new mirror(s) needing initial sync"
+
+  dispatch:
+    name: Dispatch initial syncs
+    needs: check
+    if: needs.check.outputs.count > 0
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Dispatch sync workflows
+        run: node scripts/dispatch-syncs.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.PIE_COMPAT_BOT_TOKEN }}
+          STALE_EXTENSIONS: ${{ needs.check.outputs.new }}

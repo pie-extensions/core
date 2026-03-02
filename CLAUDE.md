@@ -27,10 +27,12 @@ registry.json                        # all extensions, their upstream, status
 registry.schema.json                 # JSON Schema for registry.json validation
 .github/workflows/
   check-upstreams.yml                # daily: detect new upstream releases + dispatch syncs
+  sync-new-mirrors.yml               # on registry.json push: sync newly added mirrors
   onboard-extension.yml              # create new mirror repo from template
   health-check.yml                   # weekly: detect broken mirrors, open issues
 scripts/
   check-upstreams.js                 # compares upstream tags vs mirror tags
+  check-new-mirrors.js               # finds mirrors with no tags (never synced)
   dispatch-syncs.js                  # fires workflow_dispatch on mirror repos
   create-mirror-repo.js              # GitHub API: repo creation from template
   health-check.js                    # validates each mirror repo's state
@@ -89,7 +91,8 @@ This will:
 3. Update `composer.json` with extension metadata
 4. Add the extension to `registry.json` via `add-to-registry.js`
 5. Open a PR for the registry update
-6. Optionally trigger an initial sync (default: true)
+
+When the PR is merged, `sync-new-mirrors.yml` detects that the new mirror has no tags and automatically dispatches the initial sync.
 
 After merging the PR you must **manually register on Packagist** — this cannot be automated.
 
@@ -137,17 +140,26 @@ The token needs access to **all repositories** in the `pie-extensions` org (it c
 
 ```
 core (this repo)
-  └── check-upstreams.yml (daily cron)
+  ├── check-upstreams.yml (daily cron)
+  │     ├── check job
+  │     │     └── reads registry.json
+  │     │     └── GitHub API: get latest tag per upstream
+  │     │     └── GitHub API: get latest tag per mirror
+  │     │     └── outputs: JSON list of stale extension names
+  │     └── dispatch job (if stale count > 0)
+  │           └── dispatch-syncs.js
+  │           └── workflow_dispatch → pie-extensions/redis/sync.yml
+  │           └── workflow_dispatch → pie-extensions/imagick/sync.yml
+  │           └── ...
+  │
+  └── sync-new-mirrors.yml (on registry.json push to main)
         ├── check job
         │     └── reads registry.json
-        │     └── GitHub API: get latest tag per upstream
         │     └── GitHub API: get latest tag per mirror
-        │     └── outputs: JSON list of stale extension names
-        └── dispatch job (if stale count > 0)
+        │     └── outputs: JSON list of mirrors with no tags
+        └── dispatch job (if count > 0)
               └── dispatch-syncs.js
-              └── workflow_dispatch → pie-extensions/redis/sync.yml
-              └── workflow_dispatch → pie-extensions/imagick/sync.yml
-              └── ...
+              └── workflow_dispatch → newly added mirror repos
 
 each mirror repo (on dispatch)
   └── sync.yml

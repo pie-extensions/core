@@ -19,10 +19,6 @@ on:
         description: 'Build path for php-ext in composer.json (where extension source lives)'
         type: string
         default: 'src'
-      run-initial-sync:
-        description: 'Run initial sync immediately after creation'
-        type: boolean
-        default: true
 
 jobs:
   onboard:
@@ -70,11 +66,3 @@ jobs:
             - [ ] Set up Packagist webhook on the mirror repo
             - [ ] Update `packagist-registered: true` in registry.json
           branch: "onboard/${{ inputs.ext-name }}"
-      - name: Trigger initial sync
-        if: inputs.run-initial-sync == true
-        run: |
-          sleep 10  # give GitHub a moment after repo creation
-          node scripts/dispatch-syncs.js
-        env:
-          GITHUB_TOKEN: ${{ secrets.PIE_COMPAT_BOT_TOKEN }}
-          STALE_EXTENSIONS: '["${{ inputs.ext-name }}"]'
