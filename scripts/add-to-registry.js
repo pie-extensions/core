@@ -25,10 +25,10 @@ const today = new Date().toISOString().split('T')[0];
 
 addExtension({
     name: extName,
-    'mirror-repo': `pie-compat/${extName}`,
+    'mirror-repo': `pie-extensions/${extName}`,
     'upstream-repo': upstreamRepo,
     'upstream-type': 'github',
-    'packagist-name': `pie-compat/${extName}`,
+    'packagist-name': `pie-extensions/${extName}`,
     'packagist-registered': false,
     'php-ext-name': phpExtName,
     status: 'active',

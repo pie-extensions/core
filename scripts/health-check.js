@@ -114,7 +114,7 @@ async function main() {
     if (withProblems.length > 0) {
         report += `### Problems\n\n`;
         for (const result of withProblems) {
-            report += `**${result.ext}** (\`pie-compat/${result.ext}\`)\n`;
+            report += `**${result.ext}** (\`pie-extensions/${result.ext}\`)\n`;
             result.problems.forEach(p => (report += `- ${p}\n`));
             report += '\n';
         }

@@ -1,7 +1,7 @@
 /**
  * create-mirror-repo.js
  *
- * Creates a new mirror repo under pie-compat org from the extension-template,
+ * Creates a new mirror repo under pie-extensions org from the extension-template,
  * then populates .pie-mirror.yml with the upstream config.
  *
  * Required env vars:
@@ -16,7 +16,7 @@
 
 import { getOctokit } from './utils/github.js';
 
-const ORG = 'pie-compat';
+const ORG = 'pie-extensions';
 const TEMPLATE_REPO = 'extension-template';
 
 async function main() {
@@ -31,7 +31,7 @@ async function main() {
         throw new Error('UPSTREAM_REPO, EXT_NAME, and PHP_EXT_NAME are required');
     }
 
-    console.log(`Creating pie-compat/${extName} from template...`);
+    console.log(`Creating pie-extensions/${extName} from template...`);
 
     // Create repo from template
     await octokit.rest.repos.createUsingTemplate({

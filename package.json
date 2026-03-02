@@ -1,7 +1,7 @@
 {
   "name": "pie-extensions-core",
   "version": "1.0.0",
-  "description": "Control plane scripts for the pie-compat GitHub org",
+  "description": "Control plane scripts for the pie-extensions GitHub org",
   "private": true,
   "type": "module",
   "scripts": {

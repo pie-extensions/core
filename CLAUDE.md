@@ -119,6 +119,20 @@ Requires Node >=20 and `GITHUB_TOKEN` env var with `repo` and `workflow` scopes.
 
 The default `GITHUB_TOKEN` cannot trigger workflows in other repos — `PIE_COMPAT_BOT_TOKEN` must be a PAT or GitHub App token with `workflow` scope set as an org secret.
 
+### `PIE_COMPAT_BOT_TOKEN` fine-grained token permissions
+
+The token needs access to **all repositories** in the `pie-extensions` org (it creates new repos, pushes to mirrors, and dispatches workflows on any mirror).
+
+| Repository permission | Access       | Reason                                                                 |
+|-----------------------|--------------|------------------------------------------------------------------------|
+| **Administration**    | Read & Write | `repos.createUsingTemplate` — create new mirror repos from template    |
+| **Contents**          | Read & Write | `repos.createOrUpdateFileContents` — write `.pie-mirror.yml` and `composer.json` in mirror repos |
+| **Actions**           | Read & Write | `actions.createWorkflowDispatch` — trigger `sync.yml` on mirror repos  |
+| **Pull requests**     | Read & Write | `peter-evans/create-pull-request` — open PRs on the core repo          |
+| **Metadata**          | Read         | Required by all fine-grained tokens (auto-granted)                     |
+
+> **Note:** `repos.createUsingTemplate` requires Administration write access. If GitHub's fine-grained token support doesn't cover this, use a classic PAT with `repo` + `workflow` scopes instead.
+
 ## Architecture diagram
 
 ```

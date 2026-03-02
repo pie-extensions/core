@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "pie-compat extension registry",
+  "title": "pie-extensions extension registry",
   "type": "object",
   "required": ["extensions"],
   "properties": {
@@ -16,7 +16,7 @@
           },
           "mirror-repo": {
             "type": "string",
-            "description": "pie-compat/<name>"
+            "description": "pie-extensions/<name>"
           },
           "upstream-repo": {
             "type": "string",
@@ -29,7 +29,7 @@
           },
           "packagist-name": {
             "type": "string",
-            "description": "pie-compat/<name>"
+            "description": "pie-extensions/<name>"
           },
           "packagist-registered": {
             "type": "boolean"
