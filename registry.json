@@ -1,4 +1,17 @@
 {
   "$schema": "./registry.schema.json",
-  "extensions": []
+  "extensions": [
+    {
+      "name": "protobuf",
+      "mirror-repo": "pie-extensions/protobuf",
+      "upstream-repo": "protocolbuffers/protobuf",
+      "upstream-type": "github",
+      "packagist-name": "pie-extensions/protobuf",
+      "packagist-registered": false,
+      "php-ext-name": "protobuf",
+      "status": "active",
+      "added": "2026-03-02",
+      "notes": ""
+    }
+  ]
 }
