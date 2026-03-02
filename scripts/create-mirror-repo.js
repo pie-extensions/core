@@ -107,6 +107,29 @@ async function main() {
     });
 
     console.log(`✓ composer.json configured`);
+
+    // Get the current README.md to find its SHA
+    const { data: readmeFile } = await octokit.rest.repos.getContent({
+        owner: ORG,
+        repo: extName,
+        path: 'README.md',
+    });
+
+    // Decode, replace placeholders, and write back
+    let readmeContent = Buffer.from(readmeFile.content, 'base64').toString('utf-8');
+    readmeContent = readmeContent.replaceAll('UPSTREAM_OWNER/UPSTREAM_REPO', upstreamRepo);
+    readmeContent = readmeContent.replaceAll('EXTENSION_NAME', extName);
+
+    await octokit.rest.repos.createOrUpdateFileContents({
+        owner: ORG,
+        repo: extName,
+        path: 'README.md',
+        message: `chore: configure README.md for ${extName}`,
+        content: Buffer.from(readmeContent).toString('base64'),
+        sha: readmeFile.sha,
+    });
+
+    console.log(`✓ README.md configured`);
     console.log(`\nNext steps:`);
     console.log(`  1. Wait for initial sync to complete`);
     console.log(`  2. Register on Packagist: https://packagist.org/packages/submit`);
