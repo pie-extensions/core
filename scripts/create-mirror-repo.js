@@ -62,7 +62,7 @@ async function main() {
         `  repo: ${upstreamRepo}`,
         `  type: github`,
         `php_ext_name: ${phpExtName}`,
-        `source_dir: ${buildPath.endsWith('/') ? buildPath : buildPath + '/'}`,
+        `source_dir: src/`,
         ``,
     ].join('\n');
 
