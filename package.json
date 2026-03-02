@@ -1,0 +1,21 @@
+{
+  "name": "pie-extensions-core",
+  "version": "1.0.0",
+  "description": "Control plane scripts for the pie-compat GitHub org",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check-upstreams": "node scripts/check-upstreams.js",
+    "health-check": "node scripts/health-check.js",
+    "dispatch-syncs": "node scripts/dispatch-syncs.js"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,38 @@
+name: Health Check
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'   # every Monday at 08:00 UTC
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    name: Check all mirror repo health
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Run health check
+        id: health
+        run: node scripts/health-check.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Open issue if problems found
+        if: steps.health.outputs.has-problems == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const report = process.env.HEALTH_REPORT;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Health check: problems found ${new Date().toISOString().split('T')[0]}`,
+              body: report,
+              labels: ['health-check', 'automated']
+            });
+        env:
+          HEALTH_REPORT: ${{ steps.health.outputs.report }}

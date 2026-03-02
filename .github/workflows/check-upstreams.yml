@@ -1,0 +1,52 @@
+name: Check Upstreams
+
+on:
+  schedule:
+    - cron: '0 5 * * *'   # daily at 05:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Dry run (detect but do not dispatch syncs)'
+        type: boolean
+        default: false
+
+jobs:
+  check:
+    name: Detect stale mirrors
+    runs-on: ubuntu-latest
+    outputs:
+      stale: ${{ steps.check.outputs.stale }}
+      count: ${{ steps.check.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Check all upstreams
+        id: check
+        run: node scripts/check-upstreams.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Summary
+        run: echo "Found ${{ steps.check.outputs.count }} extension(s) needing sync"
+
+  dispatch:
+    name: Dispatch syncs
+    needs: check
+    if: needs.check.outputs.count > 0 && inputs.dry-run != true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Dispatch sync workflows
+        run: node scripts/dispatch-syncs.js
+        env:
+          # Needs workflow scope on mirror repos — set as org secret
+          GITHUB_TOKEN: ${{ secrets.PIE_COMPAT_BOT_TOKEN }}
+          STALE_EXTENSIONS: ${{ needs.check.outputs.stale }}

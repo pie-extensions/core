@@ -1,0 +1,80 @@
+name: Onboard Extension
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream-repo:
+        description: 'Upstream GitHub repo (owner/repo), e.g. phpredis/phpredis'
+        required: true
+        type: string
+      ext-name:
+        description: 'Mirror repo name / short name, e.g. redis'
+        required: true
+        type: string
+      php-ext-name:
+        description: 'PHP extension name as in php -m, e.g. redis'
+        required: true
+        type: string
+      build-path:
+        description: 'Build path for php-ext in composer.json (where extension source lives)'
+        type: string
+        default: 'src'
+      run-initial-sync:
+        description: 'Run initial sync immediately after creation'
+        type: boolean
+        default: true
+
+jobs:
+  onboard:
+    name: Create mirror repo for ${{ inputs.ext-name }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need write access to push registry.json update
+          token: ${{ secrets.PIE_COMPAT_BOT_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Create mirror repo from template
+        id: create
+        run: node scripts/create-mirror-repo.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.PIE_COMPAT_BOT_TOKEN }}
+          UPSTREAM_REPO: ${{ inputs.upstream-repo }}
+          EXT_NAME: ${{ inputs.ext-name }}
+          PHP_EXT_NAME: ${{ inputs.php-ext-name }}
+          BUILD_PATH: ${{ inputs.build-path }}
+      - name: Add to registry.json
+        run: node scripts/add-to-registry.js
+        env:
+          UPSTREAM_REPO: ${{ inputs.upstream-repo }}
+          EXT_NAME: ${{ inputs.ext-name }}
+          PHP_EXT_NAME: ${{ inputs.php-ext-name }}
+      - name: Open PR for registry update
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.PIE_COMPAT_BOT_TOKEN }}
+          commit-message: "feat: add ${{ inputs.ext-name }} to registry"
+          title: "feat: add ${{ inputs.ext-name }} mirror"
+          body: |
+            Adds `pie-extensions/${{ inputs.ext-name }}` to the extension registry.
+
+            **Upstream:** https://github.com/${{ inputs.upstream-repo }}
+            **Mirror:** https://github.com/pie-extensions/${{ inputs.ext-name }}
+
+            ## Manual steps still needed
+            - [ ] Register on Packagist: https://packagist.org/packages/submit
+            - [ ] Set up Packagist webhook on the mirror repo
+            - [ ] Update `packagist-registered: true` in registry.json
+          branch: "onboard/${{ inputs.ext-name }}"
+      - name: Trigger initial sync
+        if: inputs.run-initial-sync == true
+        run: |
+          sleep 10  # give GitHub a moment after repo creation
+          node scripts/dispatch-syncs.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.PIE_COMPAT_BOT_TOKEN }}
+          STALE_EXTENSIONS: '["${{ inputs.ext-name }}"]'

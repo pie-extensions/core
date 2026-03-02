@@ -1,0 +1,11 @@
+node_modules/
+.idea/
+
+# Environment
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
