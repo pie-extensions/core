@@ -77,6 +77,7 @@ async function main() {
             `  arches: [x86_64, arm64]`,
             `  php-versions: ['8.2', '8.3', '8.4', '8.5']`,
             `  zts: [nts, ts]`,
+            `  build-path: ${buildPath}`,
         );
     }
 
