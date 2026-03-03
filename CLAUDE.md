@@ -165,11 +165,11 @@ each mirror repo (on dispatch)
   └── sync.yml
         └── pie-extensions/mirror-action@v1 (sync)
         └── pie-extensions/mirror-action@v1 (release)
-        └── pie-extensions/mirror-action@v1 (build-binaries)
+        └── pie-extensions/mirror-action@v1 (build-binaries → delegates to php/pie-ext-binary-builder)
 ```
 
 ## Related repos
 
-- [`pie-extensions/mirror-action`](https://github.com/pie-extensions/mirror-action) — the custom action doing the actual sync/release/build work
+- [`pie-extensions/mirror-action`](https://github.com/pie-extensions/mirror-action) — composite action handling sync/release (Node.js) and build (delegates to `php/pie-ext-binary-builder`)
 - [`pie-extensions/extension-template`](https://github.com/pie-extensions/extension-template) — template used when creating new mirror repos
 - [PIE upstream](https://github.com/php/pie) — the tool users run to install extensions

@@ -12,6 +12,7 @@
  *
  * Optional env vars:
  *   BUILD_PATH          - build-path for php-ext in composer.json (default: "src")
+ *   DOWNLOAD_URL_METHOD - "pre-packaged-binary" to enable binary builds, or "composer-default" (default)
  */
 
 import { getOctokit } from './utils/github.js';
@@ -26,6 +27,8 @@ async function main() {
     const extName = process.env.EXT_NAME;
     const phpExtName = process.env.PHP_EXT_NAME;
     const buildPath = process.env.BUILD_PATH || 'src';
+    const downloadUrlMethod = process.env.DOWNLOAD_URL_METHOD || 'composer-default';
+    const enableBinaryBuild = downloadUrlMethod === 'pre-packaged-binary';
 
     if (!upstreamRepo || !extName || !phpExtName) {
         throw new Error('UPSTREAM_REPO, EXT_NAME, and PHP_EXT_NAME are required');
@@ -57,14 +60,28 @@ async function main() {
     });
 
     // Build the populated .pie-mirror.yml content
-    const content = [
+    const lines = [
         `upstream:`,
         `  repo: ${upstreamRepo}`,
         `  type: github`,
         `php_ext_name: ${phpExtName}`,
         `source_dir: src/`,
-        ``,
-    ].join('\n');
+    ];
+
+    if (enableBinaryBuild) {
+        lines.push(
+            ``,
+            `build:`,
+            `  enabled: true`,
+            `  os: [linux, darwin]`,
+            `  arches: [x86_64, arm64]`,
+            `  php-versions: ['8.2', '8.3', '8.4', '8.5']`,
+            `  zts: [nts, ts]`,
+        );
+    }
+
+    lines.push('');
+    const content = lines.join('\n');
 
     // Update the file
     await octokit.rest.repos.createOrUpdateFileContents({
@@ -94,6 +111,9 @@ async function main() {
     delete composerContent.extra;
     composerContent['php-ext']['extension-name'] = phpExtName;
     composerContent['php-ext']['build-path'] = buildPath;
+    if (enableBinaryBuild) {
+        composerContent['php-ext']['download-url-method'] = ['pre-packaged-binary', 'composer-default'];
+    }
     composerContent.support = {
         source: `https://github.com/${ORG}/${extName}`,
     };
