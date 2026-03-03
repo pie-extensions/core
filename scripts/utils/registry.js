@@ -37,3 +37,17 @@ export function updateExtensionStatus(name, status) {
     ext.status = status;
     writeRegistry(registry);
 }
+
+export function getExtension(name) {
+    const registry = readRegistry();
+    return registry.extensions.find(e => e.name === name) || null;
+}
+
+export function removeExtension(name) {
+    const registry = readRegistry();
+    const index = registry.extensions.findIndex(e => e.name === name);
+    if (index === -1) throw new Error(`Extension ${name} not found in registry`);
+    const removed = registry.extensions.splice(index, 1)[0];
+    writeRegistry(registry);
+    return removed;
+}
