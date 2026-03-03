@@ -19,6 +19,13 @@ on:
         description: 'Build path for php-ext in composer.json (where extension source lives)'
         type: string
         default: 'src'
+      download-url-method:
+        description: 'PIE download method — pre-packaged-binary enables binary building'
+        type: choice
+        options:
+          - 'composer-default'
+          - 'pre-packaged-binary'
+        default: 'composer-default'
 
 jobs:
   onboard:
@@ -43,6 +50,7 @@ jobs:
           EXT_NAME: ${{ inputs.ext-name }}
           PHP_EXT_NAME: ${{ inputs.php-ext-name }}
           BUILD_PATH: ${{ inputs.build-path }}
+          DOWNLOAD_URL_METHOD: ${{ inputs.download-url-method }}
       - name: Add to registry.json
         run: node scripts/add-to-registry.js
         env:
