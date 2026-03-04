@@ -1,0 +1,49 @@
+name: Core Issue
+description: Report a problem with workflows, scripts, or the registry in this repo
+title: "[Core Issue] "
+labels: ["core-issue"]
+body:
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Affected area
+      options:
+        - Workflows
+        - Onboarding / Offboarding
+        - Registry
+        - Scripts
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What's wrong? Include as much detail as you can.
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce the problem?
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant workflow run or logs
+      description: Paste any relevant logs or link to a workflow run.
+      render: shell
+    validations:
+      required: false
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I have searched existing issues and this hasn't been reported yet.
+          required: true
+        - label: This is a problem with the core repo, not with a specific mirrored extension.
+          required: true

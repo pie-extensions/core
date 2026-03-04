@@ -2,4 +2,4 @@ blank_issues_enabled: false
 contact_links:
   - name: Questions & Discussion
     url: https://github.com/pie-extensions/core/discussions
-    about: For questions, ideas, or anything that isn't an extension request.
+    about: For questions, ideas, or general discussion that doesn't fit an issue template.

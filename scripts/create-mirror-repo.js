@@ -45,7 +45,15 @@ export function buildMirrorConfig(upstreamRepo, phpExtName, buildPath, enableBin
     return config;
 }
 
-export function buildComposerConfig(composerContent, extName, upstreamRepo, phpExtName, buildPath, enableBinaryBuild, sourceDir = 'src/') {
+export function buildComposerConfig(
+    composerContent,
+    extName,
+    upstreamRepo,
+    phpExtName,
+    buildPath,
+    enableBinaryBuild,
+    sourceDir = 'src/',
+) {
     const result = { ...composerContent };
     result.name = `${ORG}/${extName}`;
     result.description = `PIE-compatible mirror of ${upstreamRepo}`;
