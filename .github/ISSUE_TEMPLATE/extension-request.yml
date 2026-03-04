@@ -1,0 +1,54 @@
+name: Extension Request
+description: Request a new PHP extension to be mirrored for PIE
+title: "[Extension Request] "
+labels: ["extension-request"]
+body:
+  - type: input
+    id: extension-name
+    attributes:
+      label: Extension name
+      description: The name of the PHP extension (e.g. "redis", "imagick").
+      placeholder: redis
+    validations:
+      required: true
+  - type: input
+    id: upstream-repo
+    attributes:
+      label: Upstream repository URL
+      description: The GitHub repository URL for the extension source code.
+      placeholder: https://github.com/phpredis/phpredis
+    validations:
+      required: true
+  - type: input
+    id: php-ext-name
+    attributes:
+      label: PHP extension name
+      description: The name used in php.ini (e.g. "extension=redis").
+      placeholder: redis
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why does this extension need PIE support?
+      description: Explain why this extension should be mirrored. Is it widely used? Does the upstream maintainer have plans for native PIE support?
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: Any other context, links, or information that might be helpful.
+    validations:
+      required: false
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I have checked [registry.json](https://github.com/pie-extensions/core/blob/main/registry.json) and this extension is not already mirrored.
+          required: true
+        - label: I have confirmed the upstream repository does not already have native PIE support.
+          required: true
+        - label: The upstream repository is hosted on GitHub.
+          required: true
