@@ -10,12 +10,13 @@ const START_MARKER = '<!-- extensions-table-start -->';
 const END_MARKER = '<!-- extensions-table-end -->';
 
 function generateTable(extensions) {
-    const header = '| Extension | Upstream | Packagist |';
-    const separator = '|-----------|----------|-----------|';
+    const header = '| Extension | Upstream | Mirror | Packagist |';
+    const separator = '|-----------|----------|--------|-----------|';
     const rows = extensions.map(ext => {
         const upstream = `[${ext['upstream-repo']}](https://github.com/${ext['upstream-repo']})`;
+        const mirror = `[${ext['mirror-repo']}](https://github.com/${ext['mirror-repo']})`;
         const packagist = `[${ext['packagist-name']}](https://packagist.org/packages/${ext['packagist-name']})`;
-        return `| ${ext.name} | ${upstream} | ${packagist} |`;
+        return `| ${ext.name} | ${upstream} | ${mirror} | ${packagist} |`;
     });
     return [header, separator, ...rows].join('\n');
 }
