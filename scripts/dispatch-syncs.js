@@ -9,10 +9,10 @@
  *   STALE_EXTENSIONS='["redis","imagick"]' node scripts/dispatch-syncs.js
  */
 
-import { getOctokit, dispatchWorkflow } from './utils/github.js';
+import { dispatchWorkflow, getOctokit } from './utils/github.js';
 import { getExtensions } from './utils/registry.js';
 
-async function main() {
+export async function main() {
     const raw = process.env.STALE_EXTENSIONS;
     if (!raw) {
         console.log('STALE_EXTENSIONS is empty — nothing to dispatch.');
@@ -27,7 +27,7 @@ async function main() {
 
     const octokit = getOctokit();
     const allExtensions = getExtensions();
-    const extMap = Object.fromEntries(allExtensions.map(e => [e.name, e]));
+    const extMap = Object.fromEntries(allExtensions.map((e) => [e.name, e]));
 
     console.log(`Dispatching sync for: ${staleNames.join(', ')}\n`);
 
@@ -40,20 +40,25 @@ async function main() {
 
             await dispatchWorkflow(octokit, mirrorOwner, mirrorRepo, 'sync.yml');
             console.log(`✓ Dispatched sync for ${ext['mirror-repo']}`);
-        })
+        }),
     );
 
-    const failed = results.filter(r => r.status === 'rejected');
+    const failed = results.filter((r) => r.status === 'rejected');
     if (failed.length > 0) {
         console.error(`\n${failed.length} dispatch(es) failed:`);
-        failed.forEach((r, i) => console.error(`  ${staleNames[i]}: ${r.reason?.message}`));
+        for (const [i, r] of failed.entries()) {
+            console.error(`  ${staleNames[i]}: ${r.reason?.message}`);
+        }
         process.exit(1);
     }
 
     console.log('\nAll dispatches successful.');
 }
 
-main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-});
+const isDirectRun = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+if (isDirectRun) {
+    main().catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });
+}

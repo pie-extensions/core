@@ -10,13 +10,12 @@
  *   node scripts/check-new-mirrors.js --dry-run
  */
 
-import { getOctokit, getLatestTag, parseRepo } from './utils/github.js';
-import { getActiveExtensions } from './utils/registry.js';
 import { setOutput } from './utils/actions.js';
+import { getLatestTag, getOctokit, parseRepo } from './utils/github.js';
+import { getActiveExtensions } from './utils/registry.js';
 
-const dryRun = process.argv.includes('--dry-run');
-
-async function main() {
+export async function main() {
+    const dryRun = process.argv.includes('--dry-run');
     const extensions = getActiveExtensions();
 
     console.log(`Checking ${extensions.length} active extension(s) for unsynced mirrors...\n`);
@@ -52,7 +51,7 @@ async function main() {
                 console.error(`Error checking ${ext.name}: ${err.message}`);
                 results.push({ name: ext.name, error: err.message, isNew: false });
             }
-        })
+        }),
     );
 
     // Print table
@@ -63,9 +62,7 @@ async function main() {
             console.log(`${r.name.padEnd(18)} ERROR: ${r.error}`);
         } else {
             const flag = r.isNew ? '⚠ YES' : '✓ no';
-            console.log(
-                `${r.name.padEnd(18)} ${(r.mirrorTag ?? 'none').padEnd(16)} ${flag}`
-            );
+            console.log(`${r.name.padEnd(18)} ${(r.mirrorTag ?? 'none').padEnd(16)} ${flag}`);
         }
     }
 
@@ -80,7 +77,10 @@ async function main() {
     setOutput('count', String(newExtensions.length));
 }
 
-main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-});
+const isDirectRun = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+if (isDirectRun) {
+    main().catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });
+}

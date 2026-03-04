@@ -12,28 +12,39 @@
 
 import { addExtension } from './utils/registry.js';
 
-const upstreamRepo = process.env.UPSTREAM_REPO;
-const extName = process.env.EXT_NAME;
-const phpExtName = process.env.PHP_EXT_NAME;
+export function main() {
+    const upstreamRepo = process.env.UPSTREAM_REPO;
+    const extName = process.env.EXT_NAME;
+    const phpExtName = process.env.PHP_EXT_NAME;
 
-if (!upstreamRepo || !extName || !phpExtName) {
-    console.error('UPSTREAM_REPO, EXT_NAME, PHP_EXT_NAME are required');
-    process.exit(1);
+    if (!upstreamRepo || !extName || !phpExtName) {
+        throw new Error('UPSTREAM_REPO, EXT_NAME, PHP_EXT_NAME are required');
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    addExtension({
+        name: extName,
+        'mirror-repo': `pie-extensions/${extName}`,
+        'upstream-repo': upstreamRepo,
+        'upstream-type': 'github',
+        'packagist-name': `pie-extensions/${extName}`,
+        'packagist-registered': false,
+        'php-ext-name': phpExtName,
+        status: 'active',
+        added: today,
+        notes: '',
+    });
+
+    console.log(`✓ Added ${extName} to registry.json`);
 }
 
-const today = new Date().toISOString().split('T')[0];
-
-addExtension({
-    name: extName,
-    'mirror-repo': `pie-extensions/${extName}`,
-    'upstream-repo': upstreamRepo,
-    'upstream-type': 'github',
-    'packagist-name': `pie-extensions/${extName}`,
-    'packagist-registered': false,
-    'php-ext-name': phpExtName,
-    status: 'active',
-    added: today,
-    notes: '',
-});
-
-console.log(`✓ Added ${extName} to registry.json`);
+const isDirectRun = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+if (isDirectRun) {
+    try {
+        main();
+    } catch (err) {
+        console.error(err.message);
+        process.exit(1);
+    }
+}

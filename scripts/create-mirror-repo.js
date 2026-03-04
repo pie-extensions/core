@@ -2,7 +2,7 @@
  * create-mirror-repo.js
  *
  * Creates a new mirror repo under pie-extensions org from the extension-template,
- * then populates .pie-mirror.yml with the upstream config.
+ * then populates .pie-mirror.json with the upstream config.
  *
  * Required env vars:
  *   GITHUB_TOKEN        - PAT with repo + workflow scope
@@ -20,7 +20,48 @@ import { getOctokit } from './utils/github.js';
 const ORG = 'pie-extensions';
 const TEMPLATE_REPO = 'extension-template';
 
-async function main() {
+export function buildMirrorConfig(upstreamRepo, phpExtName, buildPath, enableBinaryBuild) {
+    const config = {
+        upstream: {
+            repo: upstreamRepo,
+            type: 'github',
+        },
+        php_ext_name: phpExtName,
+        source_dir: 'src/',
+    };
+
+    if (enableBinaryBuild) {
+        config.build = {
+            enabled: true,
+            os: ['linux', 'darwin'],
+            arches: ['x86_64', 'arm64'],
+            'php-versions': ['8.2', '8.3', '8.4', '8.5'],
+            zts: ['nts', 'ts'],
+            'build-path': buildPath,
+        };
+    }
+
+    return config;
+}
+
+export function buildComposerConfig(composerContent, extName, upstreamRepo, phpExtName, buildPath, enableBinaryBuild) {
+    const result = { ...composerContent };
+    result.name = `${ORG}/${extName}`;
+    result.description = `PIE-compatible mirror of ${upstreamRepo}`;
+    delete result.extra;
+    result['php-ext'] = { ...result['php-ext'] };
+    result['php-ext']['extension-name'] = phpExtName;
+    result['php-ext']['build-path'] = buildPath;
+    if (enableBinaryBuild) {
+        result['php-ext']['download-url-method'] = ['pre-packaged-binary', 'composer-default'];
+    }
+    result.support = {
+        source: `https://github.com/${ORG}/${extName}`,
+    };
+    return result;
+}
+
+export async function main() {
     const octokit = getOctokit();
 
     const upstreamRepo = process.env.UPSTREAM_REPO;
@@ -50,51 +91,41 @@ async function main() {
     console.log(`✓ Repo created: https://github.com/${ORG}/${extName}`);
 
     // Wait a moment for GitHub to finish setting up the repo
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise((r) => setTimeout(r, 3000));
 
-    // Get the current .pie-mirror.yml to find its SHA (needed for update)
+    // Disable features that don't apply to mirror repos
+    await octokit.rest.repos.update({
+        owner: ORG,
+        repo: extName,
+        has_issues: false,
+        has_wiki: false,
+        has_projects: false,
+        has_discussions: false,
+    });
+
+    console.log('✓ Disabled issues, wiki, projects, and discussions');
+
+    // Get the current .pie-mirror.json to find its SHA (needed for update)
     const { data: currentFile } = await octokit.rest.repos.getContent({
         owner: ORG,
         repo: extName,
-        path: '.pie-mirror.yml',
+        path: '.pie-mirror.json',
     });
 
-    // Build the populated .pie-mirror.yml content
-    const lines = [
-        `upstream:`,
-        `  repo: ${upstreamRepo}`,
-        `  type: github`,
-        `php_ext_name: ${phpExtName}`,
-        `source_dir: src/`,
-    ];
-
-    if (enableBinaryBuild) {
-        lines.push(
-            ``,
-            `build:`,
-            `  enabled: true`,
-            `  os: [linux, darwin]`,
-            `  arches: [x86_64, arm64]`,
-            `  php-versions: ['8.2', '8.3', '8.4', '8.5']`,
-            `  zts: [nts, ts]`,
-            `  build-path: ${buildPath}`,
-        );
-    }
-
-    lines.push('');
-    const content = lines.join('\n');
+    const config = buildMirrorConfig(upstreamRepo, phpExtName, buildPath, enableBinaryBuild);
+    const content = `${JSON.stringify(config, null, 4)}\n`;
 
     // Update the file
     await octokit.rest.repos.createOrUpdateFileContents({
         owner: ORG,
         repo: extName,
-        path: '.pie-mirror.yml',
+        path: '.pie-mirror.json',
         message: `chore: configure upstream mirror for ${upstreamRepo}`,
         content: Buffer.from(content).toString('base64'),
         sha: currentFile.sha,
     });
 
-    console.log(`✓ .pie-mirror.yml configured`);
+    console.log('✓ .pie-mirror.json configured');
 
     // Get the current composer.json to find its SHA
     const { data: composerFile } = await octokit.rest.repos.getContent({
@@ -103,32 +134,26 @@ async function main() {
         path: 'composer.json',
     });
 
-    // Parse, replace placeholders, and write back
-    const composerContent = JSON.parse(
-        Buffer.from(composerFile.content, 'base64').toString('utf-8')
+    const composerContent = JSON.parse(Buffer.from(composerFile.content, 'base64').toString('utf-8'));
+    const updatedComposer = buildComposerConfig(
+        composerContent,
+        extName,
+        upstreamRepo,
+        phpExtName,
+        buildPath,
+        enableBinaryBuild,
     );
-    composerContent.name = `${ORG}/${extName}`;
-    composerContent.description = `PIE-compatible mirror of ${upstreamRepo}`;
-    delete composerContent.extra;
-    composerContent['php-ext']['extension-name'] = phpExtName;
-    composerContent['php-ext']['build-path'] = buildPath;
-    if (enableBinaryBuild) {
-        composerContent['php-ext']['download-url-method'] = ['pre-packaged-binary', 'composer-default'];
-    }
-    composerContent.support = {
-        source: `https://github.com/${ORG}/${extName}`,
-    };
 
     await octokit.rest.repos.createOrUpdateFileContents({
         owner: ORG,
         repo: extName,
         path: 'composer.json',
         message: `chore: configure composer.json for ${phpExtName}`,
-        content: Buffer.from(JSON.stringify(composerContent, null, 4) + '\n').toString('base64'),
+        content: Buffer.from(`${JSON.stringify(updatedComposer, null, 4)}\n`).toString('base64'),
         sha: composerFile.sha,
     });
 
-    console.log(`✓ composer.json configured`);
+    console.log('✓ composer.json configured');
 
     // Get the current README.md to find its SHA
     const { data: readmeFile } = await octokit.rest.repos.getContent({
@@ -141,6 +166,8 @@ async function main() {
     let readmeContent = Buffer.from(readmeFile.content, 'base64').toString('utf-8');
     readmeContent = readmeContent.replaceAll('UPSTREAM_OWNER/UPSTREAM_REPO', upstreamRepo);
     readmeContent = readmeContent.replaceAll('EXTENSION_NAME', extName);
+    readmeContent +=
+        '\n## Issues & Questions\n\nThis is an automated mirror repository. Please report all issues and direct questions to the [pie-extensions/core](https://github.com/pie-extensions/core) repository.\n';
 
     await octokit.rest.repos.createOrUpdateFileContents({
         owner: ORG,
@@ -151,14 +178,17 @@ async function main() {
         sha: readmeFile.sha,
     });
 
-    console.log(`✓ README.md configured`);
-    console.log(`\nNext steps:`);
-    console.log(`  1. Wait for initial sync to complete`);
-    console.log(`  2. Register on Packagist: https://packagist.org/packages/submit`);
-    console.log(`  3. Set packagist-registered: true in registry.json`);
+    console.log('✓ README.md configured');
+    console.log('\nNext steps:');
+    console.log('  1. Wait for initial sync to complete');
+    console.log('  2. Register on Packagist: https://packagist.org/packages/submit');
+    console.log('  3. Set packagist-registered: true in registry.json');
 }
 
-main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-});
+const isDirectRun = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+if (isDirectRun) {
+    main().catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });
+}
