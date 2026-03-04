@@ -10,13 +10,29 @@
  *   node scripts/check-upstreams.js --dry-run
  */
 
-import { getOctokit, getLatestTag, parseRepo } from './utils/github.js';
-import { getActiveExtensions } from './utils/registry.js';
 import { setOutput } from './utils/actions.js';
+import { getLatestTag, getOctokit, parseRepo } from './utils/github.js';
+import { getActiveExtensions } from './utils/registry.js';
 
-const dryRun = process.argv.includes('--dry-run');
+export function formatResultsTable(results) {
+    const lines = [];
+    lines.push('Extension         Upstream Tag    Mirror Tag      Needs Sync');
+    lines.push('─'.repeat(70));
+    for (const r of results) {
+        if (r.error) {
+            lines.push(`${r.name.padEnd(18)} ERROR: ${r.error}`);
+        } else {
+            const flag = r.needsSync ? '⚠ YES' : '✓ no';
+            lines.push(
+                `${r.name.padEnd(18)} ${(r.upstreamTag ?? 'none').padEnd(16)} ${(r.mirrorTag ?? 'none').padEnd(16)} ${flag}`,
+            );
+        }
+    }
+    return lines.join('\n');
+}
 
-async function main() {
+export async function main() {
+    const dryRun = process.argv.includes('--dry-run');
     const extensions = getActiveExtensions();
 
     console.log(`Checking ${extensions.length} extension(s)...\n`);
@@ -63,22 +79,10 @@ async function main() {
                 console.error(`Error checking ${ext.name}: ${err.message}`);
                 results.push({ name: ext.name, error: err.message, needsSync: false });
             }
-        })
+        }),
     );
 
-    // Print table
-    console.log('Extension         Upstream Tag    Mirror Tag      Needs Sync');
-    console.log('─'.repeat(70));
-    for (const r of results) {
-        if (r.error) {
-            console.log(`${r.name.padEnd(18)} ERROR: ${r.error}`);
-        } else {
-            const flag = r.needsSync ? '⚠ YES' : '✓ no';
-            console.log(
-                `${r.name.padEnd(18)} ${(r.upstreamTag ?? 'none').padEnd(16)} ${(r.mirrorTag ?? 'none').padEnd(16)} ${flag}`
-            );
-        }
-    }
+    console.log(formatResultsTable(results));
 
     console.log(`\n${stale.length} extension(s) need sync: ${stale.join(', ') || 'none'}`);
 
@@ -91,7 +95,10 @@ async function main() {
     setOutput('count', String(stale.length));
 }
 
-main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-});
+const isDirectRun = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+if (isDirectRun) {
+    main().catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });
+}

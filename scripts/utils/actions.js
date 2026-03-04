@@ -3,7 +3,7 @@
  * Helpers for GitHub Actions output/env file writing.
  */
 
-import { appendFileSync } from 'fs';
+import { appendFileSync } from 'node:fs';
 
 /**
  * Sets a GitHub Actions step output.

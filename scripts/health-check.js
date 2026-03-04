@@ -11,13 +11,11 @@
  * Sets actions output `has-problems` and `report`.
  */
 
-import { getOctokit, getLatestTag, parseRepo } from './utils/github.js';
-import { getActiveExtensions } from './utils/registry.js';
 import { setOutput } from './utils/actions.js';
+import { getLatestTag, getOctokit, parseRepo } from './utils/github.js';
+import { getActiveExtensions } from './utils/registry.js';
 
-const STALE_DAYS_THRESHOLD = 60;
-
-async function checkExtension(octokit, ext) {
+export async function checkExtension(octokit, ext) {
     const problems = [];
     const info = {};
 
@@ -26,10 +24,8 @@ async function checkExtension(octokit, ext) {
         const upstream = parseRepo(ext['upstream-repo']);
 
         // Check repo exists
-        let repoData;
         try {
-            const { data } = await octokit.rest.repos.get({ owner: mirror.owner, repo: mirror.repo });
-            repoData = data;
+            await octokit.rest.repos.get({ owner: mirror.owner, repo: mirror.repo });
         } catch (err) {
             problems.push(`Mirror repo not accessible: ${err.message}`);
             return { ext: ext.name, problems, info };
@@ -67,7 +63,6 @@ async function checkExtension(octokit, ext) {
         if (!ext['packagist-registered']) {
             problems.push('Not yet registered on Packagist');
         }
-
     } catch (err) {
         problems.push(`Unexpected error: ${err.message}`);
     }
@@ -75,7 +70,25 @@ async function checkExtension(octokit, ext) {
     return { ext: ext.name, problems, info };
 }
 
-async function main() {
+export function buildReport(healthy, withProblems) {
+    let report = `## Health Check Report — ${new Date().toISOString().split('T')[0]}\n\n`;
+    report += `**${healthy.length}** healthy, **${withProblems.length}** with problems.\n\n`;
+
+    if (withProblems.length > 0) {
+        report += '### Problems\n\n';
+        for (const result of withProblems) {
+            report += `**${result.ext}** (\`pie-extensions/${result.ext}\`)\n`;
+            for (const p of result.problems) {
+                report += `- ${p}\n`;
+            }
+            report += '\n';
+        }
+    }
+
+    return report;
+}
+
+export async function main() {
     const extensions = getActiveExtensions();
 
     console.log(`Health checking ${extensions.length} extension(s)...\n`);
@@ -90,41 +103,32 @@ async function main() {
 
     const octokit = getOctokit();
 
-    const allResults = await Promise.all(
-        extensions.map(ext => checkExtension(octokit, ext))
-    );
+    const allResults = await Promise.all(extensions.map((ext) => checkExtension(octokit, ext)));
 
-    const withProblems = allResults.filter(r => r.problems.length > 0);
-    const healthy = allResults.filter(r => r.problems.length === 0);
+    const withProblems = allResults.filter((r) => r.problems.length > 0);
+    const healthy = allResults.filter((r) => r.problems.length === 0);
 
-    console.log(`✓ Healthy: ${healthy.map(r => r.ext).join(', ') || 'none'}`);
-    console.log(`⚠ Problems: ${withProblems.map(r => r.ext).join(', ') || 'none'}\n`);
+    console.log(`✓ Healthy: ${healthy.map((r) => r.ext).join(', ') || 'none'}`);
+    console.log(`⚠ Problems: ${withProblems.map((r) => r.ext).join(', ') || 'none'}\n`);
 
     for (const result of withProblems) {
         console.log(`${result.ext}:`);
-        result.problems.forEach(p => console.log(`  - ${p}`));
+        for (const p of result.problems) {
+            console.log(`  - ${p}`);
+        }
     }
 
     const hasProblems = withProblems.length > 0;
-
-    // Build markdown report for GitHub Issue
-    let report = `## Health Check Report — ${new Date().toISOString().split('T')[0]}\n\n`;
-    report += `**${healthy.length}** healthy, **${withProblems.length}** with problems.\n\n`;
-
-    if (withProblems.length > 0) {
-        report += `### Problems\n\n`;
-        for (const result of withProblems) {
-            report += `**${result.ext}** (\`pie-extensions/${result.ext}\`)\n`;
-            result.problems.forEach(p => (report += `- ${p}\n`));
-            report += '\n';
-        }
-    }
+    const report = buildReport(healthy, withProblems);
 
     setOutput('has-problems', String(hasProblems));
     setOutput('report', report);
 }
 
-main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-});
+const isDirectRun = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+if (isDirectRun) {
+    main().catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });
+}

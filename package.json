@@ -7,13 +7,18 @@
   "scripts": {
     "check-upstreams": "node scripts/check-upstreams.js",
     "health-check": "node scripts/health-check.js",
-    "dispatch-syncs": "node scripts/dispatch-syncs.js"
+    "dispatch-syncs": "node scripts/dispatch-syncs.js",
+    "test": "c8 --check-coverage --lines 80 --branches 80 --functions 80 node --experimental-test-module-mocks --test 'tests/**/*.test.js'",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write ."
   },
   "dependencies": {
     "@octokit/rest": "^21.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0"
+    "@biomejs/biome": "^2.4.5",
+    "@types/node": "^22.0.0",
+    "c8": "^11.0.0"
   },
   "engines": {
     "node": ">=20"

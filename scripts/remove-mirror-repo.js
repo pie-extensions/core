@@ -10,13 +10,13 @@
  *   REPO_ACTION    - delete | archive | skip
  */
 
+import { setOutput } from './utils/actions.js';
 import { getOctokit } from './utils/github.js';
 import { getExtension } from './utils/registry.js';
-import { setOutput } from './utils/actions.js';
 
 const ORG = 'pie-extensions';
 
-async function main() {
+export async function main() {
     const extName = process.env.EXT_NAME;
     const repoAction = process.env.REPO_ACTION;
 
@@ -72,7 +72,10 @@ async function main() {
     }
 }
 
-main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-});
+const isDirectRun = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+if (isDirectRun) {
+    main().catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });
+}
