@@ -15,8 +15,6 @@ pie install pie-extensions/protobuf
 <!-- extensions-table-start -->
 | Extension | Upstream | Mirror | Packagist |
 |-----------|----------|--------|-----------|
-| protobuf | [protocolbuffers/protobuf](https://github.com/protocolbuffers/protobuf) | [pie-extensions/protobuf](https://github.com/pie-extensions/protobuf) | [pie-extensions/protobuf](https://packagist.org/packages/pie-extensions/protobuf) |
-| grpc | [grpc/grpc](https://github.com/grpc/grpc) | [pie-extensions/grpc](https://github.com/pie-extensions/grpc) | [pie-extensions/grpc](https://packagist.org/packages/pie-extensions/grpc) |
 <!-- extensions-table-end -->
 
 See [`registry.json`](registry.json) for the full list.
