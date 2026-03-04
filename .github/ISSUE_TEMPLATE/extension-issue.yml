@@ -1,0 +1,57 @@
+name: Extension Issue
+description: Report a problem with a specific mirrored extension
+title: "[Extension Issue] "
+labels: ["extension-issue"]
+body:
+  - type: input
+    id: extension-name
+    attributes:
+      label: Extension name
+      description: Which mirrored extension is affected (e.g. "redis", "imagick")?
+      placeholder: redis
+    validations:
+      required: true
+  - type: dropdown
+    id: problem-type
+    attributes:
+      label: Problem type
+      options:
+        - Sync failure
+        - Broken release
+        - Missing version
+        - Binary build issue
+        - Packagist issue
+        - Installation failure
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What's wrong? Include as much detail as you can.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-vs-actual
+    attributes:
+      label: Expected vs actual behavior
+      description: What did you expect to happen, and what actually happened?
+    validations:
+      required: false
+  - type: textarea
+    id: relevant-urls
+    attributes:
+      label: Relevant URLs
+      description: Links to upstream releases, the mirror repo, CI runs, Packagist pages, etc.
+    validations:
+      required: false
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I have checked [registry.json](https://github.com/pie-extensions/core/blob/main/registry.json) and this extension exists in the registry.
+          required: true
+        - label: I have checked the mirror repo's Actions tab for related workflow failures.
+          required: false
