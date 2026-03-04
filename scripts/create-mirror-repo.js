@@ -2,7 +2,7 @@
  * create-mirror-repo.js
  *
  * Creates a new mirror repo under pie-extensions org from the extension-template,
- * then populates .pie-mirror.yml with the upstream config.
+ * then populates .pie-mirror.json with the upstream config.
  *
  * Required env vars:
  *   GITHUB_TOKEN        - PAT with repo + workflow scope
@@ -52,49 +52,59 @@ async function main() {
     // Wait a moment for GitHub to finish setting up the repo
     await new Promise(r => setTimeout(r, 3000));
 
-    // Get the current .pie-mirror.yml to find its SHA (needed for update)
+    // Disable features that don't apply to mirror repos
+    await octokit.rest.repos.update({
+        owner: ORG,
+        repo: extName,
+        has_issues: false,
+        has_wiki: false,
+        has_projects: false,
+        has_discussions: false,
+    });
+
+    console.log(`✓ Disabled issues, wiki, projects, and discussions`);
+
+    // Get the current .pie-mirror.json to find its SHA (needed for update)
     const { data: currentFile } = await octokit.rest.repos.getContent({
         owner: ORG,
         repo: extName,
-        path: '.pie-mirror.yml',
+        path: '.pie-mirror.json',
     });
 
-    // Build the populated .pie-mirror.yml content
-    const lines = [
-        `upstream:`,
-        `  repo: ${upstreamRepo}`,
-        `  type: github`,
-        `php_ext_name: ${phpExtName}`,
-        `source_dir: src/`,
-    ];
+    // Build the populated .pie-mirror.json content
+    const config = {
+        upstream: {
+            repo: upstreamRepo,
+            type: 'github',
+        },
+        php_ext_name: phpExtName,
+        source_dir: 'src/',
+    };
 
     if (enableBinaryBuild) {
-        lines.push(
-            ``,
-            `build:`,
-            `  enabled: true`,
-            `  os: [linux, darwin]`,
-            `  arches: [x86_64, arm64]`,
-            `  php-versions: ['8.2', '8.3', '8.4', '8.5']`,
-            `  zts: [nts, ts]`,
-            `  build-path: ${buildPath}`,
-        );
+        config.build = {
+            enabled: true,
+            os: ['linux', 'darwin'],
+            arches: ['x86_64', 'arm64'],
+            'php-versions': ['8.2', '8.3', '8.4', '8.5'],
+            zts: ['nts', 'ts'],
+            'build-path': buildPath,
+        };
     }
 
-    lines.push('');
-    const content = lines.join('\n');
+    const content = JSON.stringify(config, null, 4) + '\n';
 
     // Update the file
     await octokit.rest.repos.createOrUpdateFileContents({
         owner: ORG,
         repo: extName,
-        path: '.pie-mirror.yml',
+        path: '.pie-mirror.json',
         message: `chore: configure upstream mirror for ${upstreamRepo}`,
         content: Buffer.from(content).toString('base64'),
         sha: currentFile.sha,
     });
 
-    console.log(`✓ .pie-mirror.yml configured`);
+    console.log(`✓ .pie-mirror.json configured`);
 
     // Get the current composer.json to find its SHA
     const { data: composerFile } = await octokit.rest.repos.getContent({
@@ -141,6 +151,7 @@ async function main() {
     let readmeContent = Buffer.from(readmeFile.content, 'base64').toString('utf-8');
     readmeContent = readmeContent.replaceAll('UPSTREAM_OWNER/UPSTREAM_REPO', upstreamRepo);
     readmeContent = readmeContent.replaceAll('EXTENSION_NAME', extName);
+    readmeContent += `\n## Issues & Questions\n\nThis is an automated mirror repository. Please report all issues and direct questions to the [pie-extensions/core](https://github.com/pie-extensions/core) repository.\n`;
 
     await octokit.rest.repos.createOrUpdateFileContents({
         owner: ORG,

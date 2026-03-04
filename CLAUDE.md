@@ -87,7 +87,7 @@ GitHub UI → Actions → Onboard Extension → Run workflow
 
 This will:
 1. Create `pie-extensions/redis` from the `extension-template` repo
-2. Populate `.pie-mirror.yml` with upstream config
+2. Populate `.pie-mirror.json` with upstream config
 3. Update `composer.json` with extension metadata
 4. Add the extension to `registry.json` via `add-to-registry.js`
 5. Open a PR for the registry update
@@ -129,7 +129,7 @@ The token needs access to **all repositories** in the `pie-extensions` org (it c
 | Repository permission | Access       | Reason                                                                 |
 |-----------------------|--------------|------------------------------------------------------------------------|
 | **Administration**    | Read & Write | `repos.createUsingTemplate` — create new mirror repos from template    |
-| **Contents**          | Read & Write | `repos.createOrUpdateFileContents` — write `.pie-mirror.yml` and `composer.json` in mirror repos |
+| **Contents**          | Read & Write | `repos.createOrUpdateFileContents` — write `.pie-mirror.json` and `composer.json` in mirror repos |
 | **Actions**           | Read & Write | `actions.createWorkflowDispatch` — trigger `sync.yml` on mirror repos  |
 | **Pull requests**     | Read & Write | `peter-evans/create-pull-request` — open PRs on the core repo          |
 | **Metadata**          | Read         | Required by all fine-grained tokens (auto-granted)                     |
