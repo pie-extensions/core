@@ -73,6 +73,8 @@ jobs:
           EXT_NAME: ${{ inputs.ext-name }}
           REGISTRY_ACTION: ${{ inputs.registry-action }}
           REASON: ${{ inputs.reason }}
+      - name: Update README
+        run: node scripts/update-readme.js
       - name: Open PR for registry update
         if: inputs.registry-action != 'skip'
         uses: peter-evans/create-pull-request@v6

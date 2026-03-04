@@ -16,9 +16,9 @@ on:
         required: true
         type: string
       build-path:
-        description: 'Build path for php-ext in composer.json (where extension source lives)'
+        description: 'Build path relative to source_dir (where config.m4 lives, e.g. "." or "php/ext/grpc")'
         type: string
-        default: 'src'
+        default: '.'
       download-url-method:
         description: 'PIE download method — pre-packaged-binary enables binary building'
         type: choice
@@ -57,6 +57,8 @@ jobs:
           UPSTREAM_REPO: ${{ inputs.upstream-repo }}
           EXT_NAME: ${{ inputs.ext-name }}
           PHP_EXT_NAME: ${{ inputs.php-ext-name }}
+      - name: Update README
+        run: node scripts/update-readme.js
       - name: Open PR for registry update
         uses: peter-evans/create-pull-request@v6
         with:

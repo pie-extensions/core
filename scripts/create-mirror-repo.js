@@ -15,6 +15,7 @@
  *   DOWNLOAD_URL_METHOD - "pre-packaged-binary" to enable binary builds, or "composer-default" (default)
  */
 
+import path from 'node:path';
 import { getOctokit } from './utils/github.js';
 
 const ORG = 'pie-extensions';
@@ -44,14 +45,14 @@ export function buildMirrorConfig(upstreamRepo, phpExtName, buildPath, enableBin
     return config;
 }
 
-export function buildComposerConfig(composerContent, extName, upstreamRepo, phpExtName, buildPath, enableBinaryBuild) {
+export function buildComposerConfig(composerContent, extName, upstreamRepo, phpExtName, buildPath, enableBinaryBuild, sourceDir = 'src/') {
     const result = { ...composerContent };
     result.name = `${ORG}/${extName}`;
     result.description = `PIE-compatible mirror of ${upstreamRepo}`;
     delete result.extra;
     result['php-ext'] = { ...result['php-ext'] };
     result['php-ext']['extension-name'] = phpExtName;
-    result['php-ext']['build-path'] = buildPath;
+    result['php-ext']['build-path'] = path.posix.join(sourceDir, buildPath);
     if (enableBinaryBuild) {
         result['php-ext']['download-url-method'] = ['pre-packaged-binary', 'composer-default'];
     }
@@ -67,7 +68,7 @@ export async function main() {
     const upstreamRepo = process.env.UPSTREAM_REPO;
     const extName = process.env.EXT_NAME;
     const phpExtName = process.env.PHP_EXT_NAME;
-    const buildPath = process.env.BUILD_PATH || 'src';
+    const buildPath = process.env.BUILD_PATH || '.';
     const downloadUrlMethod = process.env.DOWNLOAD_URL_METHOD || 'composer-default';
     const enableBinaryBuild = downloadUrlMethod === 'pre-packaged-binary';
 
@@ -112,6 +113,7 @@ export async function main() {
         path: '.pie-mirror.json',
     });
 
+    const sourceDir = 'src/';
     const config = buildMirrorConfig(upstreamRepo, phpExtName, buildPath, enableBinaryBuild);
     const content = `${JSON.stringify(config, null, 4)}\n`;
 
@@ -142,6 +144,7 @@ export async function main() {
         phpExtName,
         buildPath,
         enableBinaryBuild,
+        sourceDir,
     );
 
     await octokit.rest.repos.createOrUpdateFileContents({
