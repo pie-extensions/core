@@ -36,7 +36,7 @@ export function buildMirrorConfig(upstreamRepo, phpExtName, buildPath, enableBin
             enabled: true,
             os: ['linux', 'darwin'],
             arches: ['x86_64', 'arm64'],
-            'php-versions': ['8.2', '8.3', '8.4', '8.5'],
+            'php-version-constraints': [{ 'ext-versions': '*', 'php-versions': ['8.2', '8.3', '8.4', '8.5'] }],
             zts: ['nts', 'ts'],
             'build-path': buildPath,
         };

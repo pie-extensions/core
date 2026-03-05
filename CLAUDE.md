@@ -170,26 +170,23 @@ each mirror repo (on dispatch)
 
 ## Build matrix: version-specific PHP constraints
 
-Some extensions need different PHP version matrices depending on the extension version. For example, gRPC `<10.0` supports PHP 8.2–8.4, while `>=10.0` adds PHP 8.5 support.
-
-The `.pie-mirror.json` build config supports an optional `php-version-constraints` array:
+PHP versions for builds are determined exclusively by `php-version-constraints` in `.pie-mirror.json`. Each entry maps a semver range of extension versions to the PHP versions to build. First match wins.
 
 ```json
 {
   "build": {
     "enabled": true,
-    "php-versions": ["8.2", "8.3", "8.4"],
     "php-version-constraints": [
-      { "ext-versions": "<10.0.0", "php-versions": ["8.2", "8.3", "8.4"] },
-      { "ext-versions": ">=10.0.0", "php-versions": ["8.2", "8.3", "8.4", "8.5"] }
+      { "ext-versions": "<1.78.0", "php-versions": ["8.2", "8.3", "8.4"] },
+      { "ext-versions": ">=1.78.0", "php-versions": ["8.2", "8.3", "8.4", "8.5"] }
     ]
   }
 }
 ```
 
-**Resolution logic:** When building a release, `resolvePhpVersions(extVersion, buildConfig)` iterates `php-version-constraints` in order and returns the `php-versions` from the first entry whose `ext-versions` range matches (via `semver.satisfies`). If no constraint matches (or the array is empty/absent), the default `build.php-versions` is used.
+If omitted, defaults to `[{ "ext-versions": "*", "php-versions": ["8.2", "8.3", "8.4", "8.5"] }]`. Use `"*"` as a catch-all wildcard. Throws an error if no constraint matches the release version.
 
-**Semver range operators:** Any valid semver range syntax works — `>=10.0.0`, `<9.0.0`, `>=8.0.0 <9.0.0`, `^2.0.0`, `~1.5.0`, etc. Extension version tags are coerced via `semver.coerce` (handles `v` prefixes and missing patch versions).
+**Semver range operators:** Any valid semver range syntax works — `>=10.0.0`, `<9.0.0`, `>=8.0.0 <9.0.0`, `^2.0.0`, `~1.5.0`, `*`, etc. Extension version tags are coerced via `semver.coerce` (handles `v` prefixes and missing patch versions).
 
 The `resolve-matrix` mode in `mirror-action` uses this logic to produce the build matrix consumed by the `build-binaries.yml` workflow.
 
