@@ -1,17 +1,4 @@
 {
   "$schema": "./registry.schema.json",
-  "extensions": [
-    {
-      "name": "grpc",
-      "mirror-repo": "pie-extensions/grpc",
-      "upstream-repo": "grpc/grpc",
-      "upstream-type": "github",
-      "packagist-name": "pie-extensions/grpc",
-      "packagist-registered": true,
-      "php-ext-name": "grpc",
-      "status": "active",
-      "added": "2026-03-04",
-      "notes": ""
-    }
-  ]
+  "extensions": []
 }
