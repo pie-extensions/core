@@ -24,6 +24,18 @@
       "status": "active",
       "added": "2026-03-11",
       "notes": ""
+    },
+    {
+      "name": "igbinary",
+      "mirror-repo": "pie-extensions/igbinary",
+      "upstream-repo": "igbinary/igbinary",
+      "upstream-type": "github",
+      "packagist-name": "pie-extensions/igbinary",
+      "packagist-registered": false,
+      "php-ext-name": "igbinary",
+      "status": "active",
+      "added": "2026-04-10",
+      "notes": ""
     }
   ]
 }
