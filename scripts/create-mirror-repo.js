@@ -45,6 +45,20 @@ export function buildMirrorConfig(upstreamRepo, phpExtName, buildPath, enableBin
     return config;
 }
 
+export async function fetchUpstreamPhpExt(octokit, upstreamRepo) {
+    const [owner, repo] = upstreamRepo.split('/');
+    try {
+        const { data } = await octokit.rest.repos.getContent({ owner, repo, path: 'composer.json' });
+        const content = JSON.parse(Buffer.from(data.content, 'base64').toString('utf-8'));
+        if (content.type === 'php-ext' || content.type === 'php-ext-zend') {
+            return content['php-ext'] || null;
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
 export function buildComposerConfig(
     composerContent,
     extName,
@@ -53,12 +67,16 @@ export function buildComposerConfig(
     buildPath,
     enableBinaryBuild,
     sourceDir = 'src/',
+    upstreamPhpExt = null,
 ) {
     const result = { ...composerContent };
     result.name = `${ORG}/${extName}`;
     result.description = `PIE-compatible mirror of ${upstreamRepo}`;
     delete result.extra;
     result['php-ext'] = { ...result['php-ext'] };
+    if (upstreamPhpExt) {
+        result['php-ext'] = { ...result['php-ext'], ...upstreamPhpExt };
+    }
     result['php-ext']['extension-name'] = phpExtName;
     result['php-ext']['build-path'] = path.posix.join(sourceDir, buildPath);
     if (enableBinaryBuild) {
@@ -145,6 +163,15 @@ export async function main() {
     });
 
     const composerContent = JSON.parse(Buffer.from(composerFile.content, 'base64').toString('utf-8'));
+
+    console.log('Fetching upstream composer.json for php-ext config...');
+    const upstreamPhpExt = await fetchUpstreamPhpExt(octokit, upstreamRepo);
+    if (upstreamPhpExt) {
+        console.log('✓ Found upstream php-ext config');
+    } else {
+        console.log('⊘ No upstream php-ext config found, using defaults');
+    }
+
     const updatedComposer = buildComposerConfig(
         composerContent,
         extName,
@@ -153,6 +180,7 @@ export async function main() {
         buildPath,
         enableBinaryBuild,
         sourceDir,
+        upstreamPhpExt,
     );
 
     await octokit.rest.repos.createOrUpdateFileContents({
