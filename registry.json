@@ -43,7 +43,7 @@
       "upstream-repo": "grpc/grpc",
       "upstream-type": "github",
       "packagist-name": "pie-extensions/grpc",
-      "packagist-registered": false,
+      "packagist-registered": true,
       "php-ext-name": "grpc",
       "status": "active",
       "added": "2026-04-12",
