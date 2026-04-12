@@ -43,7 +43,7 @@
       "upstream-repo": "igbinary/igbinary",
       "upstream-type": "github",
       "packagist-name": "pie-extensions/igbinary",
-      "packagist-registered": false,
+      "packagist-registered": true,
       "php-ext-name": "igbinary",
       "status": "active",
       "added": "2026-04-12",
