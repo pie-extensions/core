@@ -20,7 +20,7 @@ pie install pie-extensions/protobuf
 | redis | [phpredis/phpredis](https://github.com/phpredis/phpredis) | [pie-extensions/redis](https://github.com/pie-extensions/redis) | [pie-extensions/redis](https://packagist.org/packages/pie-extensions/redis) |
 <!-- extensions-table-end -->
 
-See [`registry.json`](registry.json) for the full list.
+See [`registry.json`](registry.json) for the full list. See [`.pie-mirror.example.json`](.pie-mirror.example.json) for all available mirror configuration options.
 
 ## How it works
 
@@ -40,6 +40,7 @@ For questions, ideas, or anything that isn't an extension request, head to [GitH
 ## Related repositories
 
 - [pie-extensions/mirror-action](https://github.com/pie-extensions/mirror-action) — composite action that handles sync, release, and binary builds
+- [pie-extensions/builder](https://github.com/pie-extensions/builder) — builds PHP extension binaries for multiple platforms
 - [pie-extensions/extension-template](https://github.com/pie-extensions/extension-template) — template repo used when creating new mirrors
 
 ## License

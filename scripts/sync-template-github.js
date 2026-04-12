@@ -1,9 +1,10 @@
 /**
  * sync-template-github.js
  *
- * Syncs the .github/ directory from extension-template to all active mirror repos.
+ * Syncs the .github/ directory and root-level template files from extension-template
+ * to all active mirror repos.
  * For each mirror, creates a branch and opens a PR with the updated files.
- * Skips mirrors that already have identical .github/ contents.
+ * Skips mirrors that already have identical contents.
  *
  * Usage (local):
  *   GITHUB_TOKEN=ghp_xxx node scripts/sync-template-github.js
@@ -16,10 +17,13 @@ const ORG = 'pie-extensions';
 const TEMPLATE_REPO = 'extension-template';
 const GITHUB_DIR = '.github';
 const BRANCH_NAME = 'chore/sync-template-github';
-const PR_TITLE = 'chore: sync .github/ from extension-template';
-const PR_BODY = `This PR updates the \`.github/\` directory to match the latest version from \`pie-extensions/extension-template\`.
+const PR_TITLE = 'chore: sync template files from extension-template';
+const PR_BODY = `This PR updates template-managed files to match the latest version from \`pie-extensions/extension-template\`.
 
 This is an automated PR created by the [sync-template-github](https://github.com/pie-extensions/core/actions/workflows/sync-template-github.yml) workflow.`;
+
+// Root-level files from the template that should be synced to all mirrors
+const ROOT_FILES = ['.pie-mirror.schema.json'];
 
 // Files that exist only in the template and should not be synced to mirrors
 const EXCLUDED_FILES = ['notify-template-change.yml'];
@@ -66,7 +70,27 @@ async function fetchTemplateFiles(octokit, dirPath) {
 }
 
 /**
- * Sync .github/ files to a single mirror repo.
+ * Fetch a single file from the template repo.
+ * Returns { path, content, encoding } or null if the file doesn't exist.
+ */
+async function fetchTemplateFile(octokit, filePath) {
+    try {
+        const { data } = await octokit.rest.repos.getContent({
+            owner: ORG,
+            repo: TEMPLATE_REPO,
+            path: filePath,
+        });
+        return { path: data.path, content: data.content, encoding: data.encoding };
+    } catch (err) {
+        if (err.status === 404) {
+            return null;
+        }
+        throw err;
+    }
+}
+
+/**
+ * Sync template files to a single mirror repo.
  * Creates a branch and PR if files differ from the template.
  */
 async function syncMirror(octokit, ext, templateFiles) {
@@ -191,8 +215,10 @@ export async function main() {
         return;
     }
 
-    console.log(`Fetching .github/ from ${ORG}/${TEMPLATE_REPO}...\n`);
-    const templateFiles = await fetchTemplateFiles(octokit, GITHUB_DIR);
+    console.log(`Fetching template files from ${ORG}/${TEMPLATE_REPO}...\n`);
+    const githubFiles = await fetchTemplateFiles(octokit, GITHUB_DIR);
+    const rootFiles = (await Promise.all(ROOT_FILES.map((f) => fetchTemplateFile(octokit, f)))).filter(Boolean);
+    const templateFiles = [...githubFiles, ...rootFiles];
     console.log(
         `Found ${templateFiles.length} file(s) to sync:\n${templateFiles.map((f) => `  ${f.path}`).join('\n')}\n`,
     );

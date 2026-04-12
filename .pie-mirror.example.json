@@ -1,0 +1,39 @@
+{
+    "$schema": "./.pie-mirror.schema.json",
+    "upstream": {
+        "repo": "grpc/grpc",
+        "type": "github"
+    },
+    "php_ext_name": "grpc",
+    "source_dir": "src/",
+    "sync": {
+        "prereleases": false,
+        "initial-versions": 3,
+        "exclude-tags": [".*-pre\\d+"]
+    },
+    "hooks": {
+        "post-extract": [
+            "cp -r vendor-deps/ \"${GITHUB_WORKSPACE}/${PIE_SOURCE_DIR}/deps/\"",
+            "sed -i'' -e 's/ -g / /g' \"${GITHUB_WORKSPACE}/${PIE_SOURCE_DIR}/config.m4\""
+        ]
+    },
+    "build": {
+        "enabled": true,
+        "os": ["linux", "darwin"],
+        "arches": ["x86_64", "arm64"],
+        "zts": ["nts", "ts"],
+        "libc": ["glibc", "musl"],
+        "configure-flags": "",
+        "build-path": ".",
+        "php-version-constraints": [
+            {
+                "ext-versions": "<1.78.0",
+                "php-versions": ["8.2", "8.3", "8.4"]
+            },
+            {
+                "ext-versions": ">=1.78.0",
+                "php-versions": ["8.2", "8.3", "8.4", "8.5"]
+            }
+        ]
+    }
+}
