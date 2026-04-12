@@ -36,6 +36,18 @@
       "status": "active",
       "added": "2026-04-12",
       "notes": ""
+    },
+    {
+      "name": "grpc",
+      "mirror-repo": "pie-extensions/grpc",
+      "upstream-repo": "grpc/grpc",
+      "upstream-type": "github",
+      "packagist-name": "pie-extensions/grpc",
+      "packagist-registered": false,
+      "php-ext-name": "grpc",
+      "status": "active",
+      "added": "2026-04-12",
+      "notes": ""
     }
   ]
 }
