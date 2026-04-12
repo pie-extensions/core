@@ -141,9 +141,7 @@ describe('create-mirror-repo', () => {
                 },
             };
             const result = await fetchUpstreamPhpExt(mockOctokit, 'org/repo');
-            assert.deepEqual(result['configure-options'], [
-                { name: 'enable-opcache', description: 'Enable opcache' },
-            ]);
+            assert.deepEqual(result['configure-options'], [{ name: 'enable-opcache', description: 'Enable opcache' }]);
         });
 
         it('returns null when upstream has no composer.json (404)', async () => {
@@ -245,9 +243,7 @@ describe('create-mirror-repo', () => {
             );
             assert.equal(result['php-ext']['extension-name'], 'redis');
             assert.equal(result['php-ext']['build-path'], 'src');
-            assert.deepEqual(result['php-ext']['configure-options'], [
-                { name: 'with-foo', description: 'Foo' },
-            ]);
+            assert.deepEqual(result['php-ext']['configure-options'], [{ name: 'with-foo', description: 'Foo' }]);
         });
 
         it('does not let upstream override download-url-method when binary build enabled', () => {
@@ -265,10 +261,7 @@ describe('create-mirror-repo', () => {
                 'src/',
                 upstreamPhpExt,
             );
-            assert.deepEqual(result['php-ext']['download-url-method'], [
-                'pre-packaged-binary',
-                'composer-default',
-            ]);
+            assert.deepEqual(result['php-ext']['download-url-method'], ['pre-packaged-binary', 'composer-default']);
         });
 
         it('works with null upstreamPhpExt', () => {
@@ -412,9 +405,7 @@ describe('create-mirror-repo', () => {
             const composerUpdate = apiCalls.find(
                 (c) => c.method === 'createOrUpdateFileContents' && c.params.path === 'composer.json',
             );
-            const composerContent = JSON.parse(
-                Buffer.from(composerUpdate.params.content, 'base64').toString('utf-8'),
-            );
+            const composerContent = JSON.parse(Buffer.from(composerUpdate.params.content, 'base64').toString('utf-8'));
             assert.deepEqual(composerContent['php-ext']['configure-options'], [
                 { name: 'enable-redis', description: 'Enable redis support' },
             ]);
@@ -442,9 +433,9 @@ describe('create-mirror-repo', () => {
                                     if (params.owner === 'phpredis' && params.repo === 'phpredis') {
                                         return {
                                             data: {
-                                                content: Buffer.from(
-                                                    JSON.stringify({ type: 'library' }),
-                                                ).toString('base64'),
+                                                content: Buffer.from(JSON.stringify({ type: 'library' })).toString(
+                                                    'base64',
+                                                ),
                                             },
                                         };
                                     }
