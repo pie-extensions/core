@@ -26,18 +26,6 @@
       "notes": ""
     },
     {
-      "name": "redis",
-      "mirror-repo": "pie-extensions/redis",
-      "upstream-repo": "phpredis/phpredis",
-      "upstream-type": "github",
-      "packagist-name": "pie-extensions/redis",
-      "packagist-registered": true,
-      "php-ext-name": "redis",
-      "status": "active",
-      "added": "2026-04-10",
-      "notes": ""
-    },
-    {
       "name": "igbinary",
       "mirror-repo": "pie-extensions/igbinary",
       "upstream-repo": "igbinary/igbinary",
