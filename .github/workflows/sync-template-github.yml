@@ -1,0 +1,22 @@
+name: Sync Template GitHub Config
+
+on:
+  repository_dispatch:
+    types: [template-github-changed]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Sync .github/ to mirror repos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Sync template .github/ to all mirrors
+        run: node scripts/sync-template-github.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.PIE_COMPAT_BOT_TOKEN }}
