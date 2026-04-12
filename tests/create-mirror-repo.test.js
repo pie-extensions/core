@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
-import { buildComposerConfig, buildMirrorConfig } from '../scripts/create-mirror-repo.js';
+import { buildComposerConfig, buildMirrorConfig, fetchUpstreamPhpExt } from '../scripts/create-mirror-repo.js';
 
 let importCounter = 0;
 
@@ -87,6 +87,206 @@ describe('create-mirror-repo', () => {
         });
     });
 
+    describe('fetchUpstreamPhpExt', () => {
+        it('returns php-ext section when upstream has type php-ext', async () => {
+            const mockOctokit = {
+                rest: {
+                    repos: {
+                        getContent: async () => ({
+                            data: {
+                                content: Buffer.from(
+                                    JSON.stringify({
+                                        type: 'php-ext',
+                                        'php-ext': {
+                                            'extension-name': 'redis',
+                                            'configure-options': [
+                                                { name: 'enable-redis', description: 'Enable redis support' },
+                                            ],
+                                            priority: 60,
+                                        },
+                                    }),
+                                ).toString('base64'),
+                            },
+                        }),
+                    },
+                },
+            };
+            const result = await fetchUpstreamPhpExt(mockOctokit, 'phpredis/phpredis');
+            assert.deepEqual(result['configure-options'], [
+                { name: 'enable-redis', description: 'Enable redis support' },
+            ]);
+            assert.equal(result.priority, 60);
+        });
+
+        it('returns php-ext section for php-ext-zend type', async () => {
+            const mockOctokit = {
+                rest: {
+                    repos: {
+                        getContent: async () => ({
+                            data: {
+                                content: Buffer.from(
+                                    JSON.stringify({
+                                        type: 'php-ext-zend',
+                                        'php-ext': {
+                                            'extension-name': 'opcache',
+                                            'configure-options': [
+                                                { name: 'enable-opcache', description: 'Enable opcache' },
+                                            ],
+                                        },
+                                    }),
+                                ).toString('base64'),
+                            },
+                        }),
+                    },
+                },
+            };
+            const result = await fetchUpstreamPhpExt(mockOctokit, 'org/repo');
+            assert.deepEqual(result['configure-options'], [
+                { name: 'enable-opcache', description: 'Enable opcache' },
+            ]);
+        });
+
+        it('returns null when upstream has no composer.json (404)', async () => {
+            const mockOctokit = {
+                rest: {
+                    repos: {
+                        getContent: async () => {
+                            throw new Error('Not Found');
+                        },
+                    },
+                },
+            };
+            const result = await fetchUpstreamPhpExt(mockOctokit, 'org/repo');
+            assert.equal(result, null);
+        });
+
+        it('returns null when upstream type is not php-ext', async () => {
+            const mockOctokit = {
+                rest: {
+                    repos: {
+                        getContent: async () => ({
+                            data: {
+                                content: Buffer.from(JSON.stringify({ type: 'library' })).toString('base64'),
+                            },
+                        }),
+                    },
+                },
+            };
+            const result = await fetchUpstreamPhpExt(mockOctokit, 'org/repo');
+            assert.equal(result, null);
+        });
+
+        it('returns null when upstream has php-ext type but no php-ext section', async () => {
+            const mockOctokit = {
+                rest: {
+                    repos: {
+                        getContent: async () => ({
+                            data: {
+                                content: Buffer.from(JSON.stringify({ type: 'php-ext' })).toString('base64'),
+                            },
+                        }),
+                    },
+                },
+            };
+            const result = await fetchUpstreamPhpExt(mockOctokit, 'org/repo');
+            assert.equal(result, null);
+        });
+    });
+
+    describe('buildComposerConfig with upstream php-ext', () => {
+        const baseComposer = {
+            name: 'placeholder',
+            description: 'placeholder',
+            type: 'php-ext',
+            extra: { some: 'data' },
+            'php-ext': {
+                'extension-name': 'placeholder',
+                'build-path': 'placeholder',
+            },
+        };
+
+        it('merges upstream configure-options and priority', () => {
+            const upstreamPhpExt = {
+                'extension-name': 'redis',
+                'configure-options': [{ name: 'enable-redis', description: 'Enable redis support' }],
+                priority: 60,
+            };
+            const result = buildComposerConfig(
+                baseComposer,
+                'redis',
+                'phpredis/phpredis',
+                'redis',
+                '.',
+                false,
+                'src/',
+                upstreamPhpExt,
+            );
+            assert.deepEqual(result['php-ext']['configure-options'], [
+                { name: 'enable-redis', description: 'Enable redis support' },
+            ]);
+            assert.equal(result['php-ext'].priority, 60);
+        });
+
+        it('does not let upstream override extension-name or build-path', () => {
+            const upstreamPhpExt = {
+                'extension-name': 'wrong-name',
+                'build-path': 'wrong-path',
+                'configure-options': [{ name: 'with-foo', description: 'Foo' }],
+            };
+            const result = buildComposerConfig(
+                baseComposer,
+                'redis',
+                'phpredis/phpredis',
+                'redis',
+                '.',
+                false,
+                'src/',
+                upstreamPhpExt,
+            );
+            assert.equal(result['php-ext']['extension-name'], 'redis');
+            assert.equal(result['php-ext']['build-path'], 'src');
+            assert.deepEqual(result['php-ext']['configure-options'], [
+                { name: 'with-foo', description: 'Foo' },
+            ]);
+        });
+
+        it('does not let upstream override download-url-method when binary build enabled', () => {
+            const upstreamPhpExt = {
+                'download-url-method': ['wrong-method'],
+                'configure-options': [{ name: 'with-foo', description: 'Foo' }],
+            };
+            const result = buildComposerConfig(
+                baseComposer,
+                'redis',
+                'phpredis/phpredis',
+                'redis',
+                '.',
+                true,
+                'src/',
+                upstreamPhpExt,
+            );
+            assert.deepEqual(result['php-ext']['download-url-method'], [
+                'pre-packaged-binary',
+                'composer-default',
+            ]);
+        });
+
+        it('works with null upstreamPhpExt', () => {
+            const result = buildComposerConfig(
+                baseComposer,
+                'redis',
+                'phpredis/phpredis',
+                'redis',
+                '.',
+                false,
+                'src/',
+                null,
+            );
+            assert.equal(result['php-ext']['extension-name'], 'redis');
+            assert.equal(result['php-ext']['configure-options'], undefined);
+        });
+    });
+
     describe('main', () => {
         let originalEnv;
         let logs;
@@ -142,6 +342,28 @@ describe('create-mirror-repo', () => {
                                 },
                                 getContent: async (params) => {
                                     apiCalls.push({ method: 'getContent', params });
+                                    // Upstream repo composer.json fetch
+                                    if (params.owner === 'phpredis' && params.repo === 'phpredis') {
+                                        return {
+                                            data: {
+                                                content: Buffer.from(
+                                                    JSON.stringify({
+                                                        type: 'php-ext',
+                                                        'php-ext': {
+                                                            'extension-name': 'redis',
+                                                            'configure-options': [
+                                                                {
+                                                                    name: 'enable-redis',
+                                                                    description: 'Enable redis support',
+                                                                },
+                                                            ],
+                                                            priority: 60,
+                                                        },
+                                                    }),
+                                                ).toString('base64'),
+                                            },
+                                        };
+                                    }
                                     if (params.path === 'composer.json') {
                                         const content = Buffer.from(
                                             JSON.stringify({
@@ -184,6 +406,19 @@ describe('create-mirror-repo', () => {
             assert.ok(logs.some((l) => l.includes('.pie-mirror.json configured')));
             assert.ok(logs.some((l) => l.includes('composer.json configured')));
             assert.ok(logs.some((l) => l.includes('README.md configured')));
+            assert.ok(logs.some((l) => l.includes('Found upstream php-ext config')));
+
+            // Verify upstream configure-options were merged into composer.json
+            const composerUpdate = apiCalls.find(
+                (c) => c.method === 'createOrUpdateFileContents' && c.params.path === 'composer.json',
+            );
+            const composerContent = JSON.parse(
+                Buffer.from(composerUpdate.params.content, 'base64').toString('utf-8'),
+            );
+            assert.deepEqual(composerContent['php-ext']['configure-options'], [
+                { name: 'enable-redis', description: 'Enable redis support' },
+            ]);
+            assert.equal(composerContent['php-ext'].priority, 60);
         });
 
         it('enables binary build when DOWNLOAD_URL_METHOD is pre-packaged-binary', async () => {
@@ -203,6 +438,16 @@ describe('create-mirror-repo', () => {
                                 createUsingTemplate: async () => {},
                                 update: async () => {},
                                 getContent: async (params) => {
+                                    // Upstream repo fetch
+                                    if (params.owner === 'phpredis' && params.repo === 'phpredis') {
+                                        return {
+                                            data: {
+                                                content: Buffer.from(
+                                                    JSON.stringify({ type: 'library' }),
+                                                ).toString('base64'),
+                                            },
+                                        };
+                                    }
                                     if (params.path === 'composer.json') {
                                         const content = Buffer.from(
                                             JSON.stringify({
