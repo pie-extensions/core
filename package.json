@@ -8,6 +8,7 @@
     "check-upstreams": "node scripts/check-upstreams.js",
     "health-check": "node scripts/health-check.js",
     "dispatch-syncs": "node scripts/dispatch-syncs.js",
+    "sync-template-github": "node scripts/sync-template-github.js",
     "test": "c8 --check-coverage --lines 80 --branches 80 --functions 80 node --experimental-test-module-mocks --test 'tests/**/*.test.js'",
     "lint": "biome check .",
     "lint:fix": "biome check --write ."
