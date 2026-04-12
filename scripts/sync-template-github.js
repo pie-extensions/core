@@ -26,7 +26,7 @@ This is an automated PR created by the [sync-template-github](https://github.com
 const ROOT_FILES = ['.pie-mirror.schema.json'];
 
 // Files that exist only in the template and should not be synced to mirrors
-const EXCLUDED_FILES = ['notify-template-change.yml'];
+const EXCLUDED_FILES = [];
 
 /**
  * Recursively fetch all files under a directory from a GitHub repo.
