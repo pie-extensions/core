@@ -2,18 +2,6 @@
   "$schema": "./registry.schema.json",
   "extensions": [
     {
-      "name": "protobuf",
-      "mirror-repo": "pie-extensions/protobuf",
-      "upstream-repo": "protocolbuffers/protobuf",
-      "upstream-type": "github",
-      "packagist-name": "pie-extensions/protobuf",
-      "packagist-registered": true,
-      "php-ext-name": "protobuf",
-      "status": "active",
-      "added": "2026-03-05",
-      "notes": ""
-    },
-    {
       "name": "igbinary",
       "mirror-repo": "pie-extensions/igbinary",
       "upstream-repo": "igbinary/igbinary",
