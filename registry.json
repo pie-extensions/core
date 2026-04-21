@@ -14,18 +14,6 @@
       "notes": ""
     },
     {
-      "name": "grpc",
-      "mirror-repo": "pie-extensions/grpc",
-      "upstream-repo": "grpc/grpc",
-      "upstream-type": "github",
-      "packagist-name": "pie-extensions/grpc",
-      "packagist-registered": true,
-      "php-ext-name": "grpc",
-      "status": "active",
-      "added": "2026-04-12",
-      "notes": ""
-    },
-    {
       "name": "redis",
       "mirror-repo": "pie-extensions/redis",
       "upstream-repo": "phpredis/phpredis",
