@@ -43,7 +43,7 @@
       "upstream-repo": "phpredis/phpredis",
       "upstream-type": "github",
       "packagist-name": "pie-extensions/redis",
-      "packagist-registered": false,
+      "packagist-registered": true,
       "php-ext-name": "redis",
       "status": "active",
       "added": "2026-04-21",
