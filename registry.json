@@ -26,18 +26,6 @@
       "notes": ""
     },
     {
-      "name": "protobuf",
-      "mirror-repo": "pie-extensions/protobuf",
-      "upstream-repo": "protocolbuffers/protobuf",
-      "upstream-type": "github",
-      "packagist-name": "pie-extensions/protobuf",
-      "packagist-registered": true,
-      "php-ext-name": "protobuf",
-      "status": "active",
-      "added": "2026-04-13",
-      "notes": ""
-    },
-    {
       "name": "grpc",
       "mirror-repo": "pie-extensions/grpc",
       "upstream-repo": "grpc/grpc",
