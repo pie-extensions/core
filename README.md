@@ -18,6 +18,7 @@ pie install pie-extensions/protobuf
 | grpc | [grpc/grpc](https://github.com/grpc/grpc) | [pie-extensions/grpc](https://github.com/pie-extensions/grpc) | [pie-extensions/grpc](https://packagist.org/packages/pie-extensions/grpc) |
 | protobuf | [protocolbuffers/protobuf](https://github.com/protocolbuffers/protobuf) | [pie-extensions/protobuf](https://github.com/pie-extensions/protobuf) | [pie-extensions/protobuf](https://packagist.org/packages/pie-extensions/protobuf) |
 | igbinary | [igbinary/igbinary](https://github.com/igbinary/igbinary) | [pie-extensions/igbinary](https://github.com/pie-extensions/igbinary) | [pie-extensions/igbinary](https://packagist.org/packages/pie-extensions/igbinary) |
+| redis | [phpredis/phpredis](https://github.com/phpredis/phpredis) | [pie-extensions/redis](https://github.com/pie-extensions/redis) | [pie-extensions/redis](https://packagist.org/packages/pie-extensions/redis) |
 <!-- extensions-table-end -->
 
 See [`registry.json`](registry.json) for the full list. See [`.pie-mirror.example.json`](.pie-mirror.example.json) for all available mirror configuration options.
