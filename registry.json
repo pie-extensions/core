@@ -45,9 +45,9 @@
       "packagist-name": "pie-extensions/redis",
       "packagist-registered": true,
       "php-ext-name": "redis",
-      "status": "active",
+      "status": "deprecated",
       "added": "2026-04-21",
-      "notes": ""
+      "notes": "Moving to a new org"
     }
   ]
 }
