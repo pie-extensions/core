@@ -33,9 +33,9 @@
       "packagist-name": "pie-extensions/igbinary",
       "packagist-registered": true,
       "php-ext-name": "igbinary",
-      "status": "active",
+      "status": "deprecated",
       "added": "2026-04-21",
-      "notes": ""
+      "notes": "Moving to a new org"
     },
     {
       "name": "redis",
