@@ -15,7 +15,6 @@ pie install pie-extensions/protobuf
 <!-- extensions-table-start -->
 | Extension | Upstream | Mirror | Packagist |
 |-----------|----------|--------|-----------|
-| protobuf | [protocolbuffers/protobuf](https://github.com/protocolbuffers/protobuf) | [pie-extensions/protobuf](https://github.com/pie-extensions/protobuf) | [pie-extensions/protobuf](https://packagist.org/packages/pie-extensions/protobuf) |
 <!-- extensions-table-end -->
 
 See [`registry.json`](registry.json) for the full list. See [`.pie-mirror.example.json`](.pie-mirror.example.json) for all available mirror configuration options.
