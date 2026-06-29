@@ -9,9 +9,9 @@
       "packagist-name": "pie-extensions/grpc",
       "packagist-registered": true,
       "php-ext-name": "grpc",
-      "status": "active",
+      "status": "deprecated",
       "added": "2026-04-21",
-      "notes": ""
+      "notes": "Moving to a new org"
     },
     {
       "name": "protobuf",
