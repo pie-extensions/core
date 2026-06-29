@@ -1,4 +1,4 @@
-# pie-extensions [MOVED TO [https://github.com/extport/core](EXPORT) ORG]
+# pie-extensions [MOVED TO [EXPORT](https://github.com/extport/core) ORG]
 
 Making PHP extensions installable via [PIE](https://github.com/php/pie) today.
 
