@@ -21,9 +21,9 @@
       "packagist-name": "pie-extensions/protobuf",
       "packagist-registered": true,
       "php-ext-name": "protobuf",
-      "status": "active",
+      "status": "deprecated",
       "added": "2026-04-21",
-      "notes": ""
+      "notes": "Moving to a new org"
     },
     {
       "name": "igbinary",
